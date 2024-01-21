@@ -60,7 +60,7 @@ class CodeDocxGenerator {
                 FILE_TYPES!!.add(args[i])
             }
         }
-        IGNORE_DIRS = ignoreDirs ?: ArrayList()
+        IGNORE_DIRS = ignoreDirs
         DOC_SAVE_PATH = "$PROJECT_PATH${File.separator}SourceCode.docx"
         LogUtils.println("获取参数成功")
         LogUtils.println("源代码项目目录：$PROJECT_PATH")

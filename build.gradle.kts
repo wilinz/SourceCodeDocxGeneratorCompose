@@ -27,7 +27,6 @@ dependencies {
     implementation("org.apache.poi:ooxml-schemas:1.3")
     implementation("com.darkrockstudios:mpfilepicker:3.1.0")
     // https://mvnrepository.com/artifact/org.jetbrains.compose.material/material-icons-extended-desktop
-    implementation(compose.materialIconsExtended)
 }
 
 compose.desktop {

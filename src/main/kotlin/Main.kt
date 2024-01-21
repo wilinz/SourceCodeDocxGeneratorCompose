@@ -4,15 +4,11 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
@@ -66,7 +62,7 @@ fun App() {
                             IconButton(onClick = {
                                 showDirPicker = true
                             }) {
-                                Icon(Icons.Default.FolderOpen, contentDescription = null)
+                                Icon(painterResource("folder_open_black_24dp.svg"), contentDescription = null)
                             }
                         },
                         label = {
@@ -252,7 +248,7 @@ private fun start(
 fun main() = application {
     Window(
         onCloseRequest = ::exitApplication,
-        title = "源代码文档自动生成工具",
+        title = "软著源代码文档自动生成工具",
         icon = painterResource("logo.jpg")
     ) {
         App()
