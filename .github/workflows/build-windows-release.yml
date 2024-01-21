@@ -16,8 +16,8 @@ jobs:
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
-          distribution: 'adopt'
-          java-version: '11'
+          distribution: 'microsoft'
+          java-version: '17'
 
       - name: Build Compose Desktop
         run: |
