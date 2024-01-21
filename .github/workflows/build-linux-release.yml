@@ -22,7 +22,10 @@ jobs:
       - name: Build Compose Desktop
         run: |
           chmod 0777 ./gradlew
-          ./gradlew packageDistributionForCurrentOS
+          ./gradlew packageDeb
+          ./gradlew packageRpm
+          ./gradlew packagePkg
+          ./gradlew packageAppImage
           ls build/compose/binaries/main
 
       - name: Upload to Release
