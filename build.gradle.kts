@@ -34,9 +34,24 @@ compose.desktop {
         mainClass = "MainKt"
 
         nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
+            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb, TargetFormat.Rpm, TargetFormat.Pkg, TargetFormat.AppImage)
             packageName = "SourceCodeDocxGeneratorCompose"
             packageVersion = "1.0.0"
+            macOS {
+                iconFile.set(project.file("logo/logo.icns"))
+            }
+            windows {
+                iconFile.set(project.file("logo/logo.ico"))
+            }
+            linux {
+                iconFile.set(project.file("logo/logo.jpg"))
+            }
+            buildTypes.release.proguard {
+                version.set("7.3.2")
+                configurationFiles.from(project.file("proguard-rules.pro"))
+                isEnabled.set(false)
+                obfuscate.set(false)
+            }
         }
     }
 }
