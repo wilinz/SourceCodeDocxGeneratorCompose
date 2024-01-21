@@ -1,7 +1,7 @@
 # SourceCodeDocxGeneratorCompose
 SourceCodeDocxGeneratorCompose 是一个自动生成软著申请所需的项目源代码Word文档的工具，使用它可以很方便地生成60页的源代码文档，而不用手动撸。  
 
-SourceCodeDocxGeneratorCompose 基于 SourceCodeDocxGenerator 并使用 Compose Desktop 重新实现了 UI
+SourceCodeDocxGeneratorCompose 基于 [SourceCodeDocxGenerator](https://github.com/CharlieJiang/SourceCodeDocxGenerator) 并使用 Compose Desktop 重新实现了 UI
 
 SourceCodeDocxGenerator基于Apache POI实现，详情请参考代码。
 
