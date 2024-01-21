@@ -40,8 +40,8 @@ jobs:
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files:
-           - 'build/compose/binaries/main/msi/*.msi'
-           - 'innosetup/output/release/*.exe'
+          files: |
+           build/compose/binaries/main/msi/*.msi
+           innosetup/output/release/*.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -29,10 +29,10 @@ jobs:
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files:
-           - 'build/compose/binaries/main/deb/*'
-           - 'build/compose/binaries/main/rpm/*'
-           - 'build/compose/binaries/main/pkg/*'
-           - 'build/compose/binaries/main/appimage/*'
+          files: |
+           build/compose/binaries/main/deb/*
+           build/compose/binaries/main/rpm/*
+           build/compose/binaries/main/pkg/*
+           build/compose/binaries/main/appimage/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
