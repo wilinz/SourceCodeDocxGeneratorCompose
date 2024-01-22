@@ -24,7 +24,6 @@ jobs:
         run: |
           chmod 0777 ./gradlew
           ./gradlew packagePkg
-          ./gradlew packageAppImage
           ls build/compose/binaries/main
           ls build/compose/binaries/main/pkg
 
@@ -34,6 +33,5 @@ jobs:
         with:
           files: |
             build/compose/binaries/main/pkg/*
-            build/compose/binaries/main/appimage/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
