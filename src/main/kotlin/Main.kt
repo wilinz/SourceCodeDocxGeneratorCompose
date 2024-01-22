@@ -254,7 +254,7 @@ fun main() = application {
     Window(
         onCloseRequest = ::exitApplication,
         title = "软著源代码文档自动生成工具",
-        icon = painterResource("logo.jpg")
+        icon = painterResource("logo.png")
     ) {
         App()
     }

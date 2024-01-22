@@ -46,7 +46,7 @@ compose.desktop {
                 iconFile.set(project.file("logo/logo.ico"))
             }
             linux {
-                iconFile.set(project.file("logo/logo.jpg"))
+                iconFile.set(project.file("logo/logo.png"))
             }
             buildTypes.release.proguard {
                 version.set("7.3.2")
