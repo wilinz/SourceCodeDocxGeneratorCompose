@@ -364,7 +364,7 @@ private fun start(
 fun main() = application {
     val windowState = rememberWindowState(
         width = 800.dp,  // 设置窗口的初始宽度
-        height = 600.dp, // 设置窗口的初始高度
+        height = 640.dp, // 设置窗口的初始高度
         position = WindowPosition(Alignment.Center) // 设置窗口的初始位置
     )
     Window(
