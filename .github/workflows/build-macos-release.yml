@@ -21,8 +21,11 @@ jobs:
 
       - name: Build Compose Desktop
         run: |
-          chmod 0777 ./gradlew
+          chmod +x ./gradlew
           ./gradlew packageDmg
+
+      - name: Rename DMG file
+        run: mv build/compose/binaries/main/dmg/*.dmg build/compose/binaries/main/dmg/*-macos.dmg
 
       - name: Upload to Release
         uses: softprops/action-gh-release@v1

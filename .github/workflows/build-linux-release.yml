@@ -21,17 +21,24 @@ jobs:
 
       - name: Build Compose Desktop
         run: |
-          chmod 0777 ./gradlew
+          chmod +x ./gradlew
           ./gradlew packageDeb
           ./gradlew packageRpm
           ls build/compose/binaries/main
+
+      - name: Rename
+        run: |
+          cd build/compose/binaries/main/deb
+          for file in *.deb; do mv "$file" "$(basename "$file" .deb)-linux.deb"; done
+          cd ../rpm
+          for file in *.rpm; do mv "$file" "$(basename "$file" .rpm)-linux.rpm"; done
 
       - name: Upload to Release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
-           build/compose/binaries/main/deb/*
-           build/compose/binaries/main/rpm/*
+            build/compose/binaries/main/deb/*
+            build/compose/binaries/main/rpm/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
