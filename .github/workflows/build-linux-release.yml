@@ -24,8 +24,8 @@ jobs:
           chmod 0777 ./gradlew
           ./gradlew packageDeb
           ./gradlew packageRpm
-          ./gradlew packagePkg
-          ./gradlew packageAppImage
+#          ./gradlew packagePkg
+#          ./gradlew packageAppImage
           ls build/compose/binaries/main
 
       - name: Upload to Release
@@ -35,7 +35,7 @@ jobs:
           files: |
            build/compose/binaries/main/deb/*
            build/compose/binaries/main/rpm/*
-           build/compose/binaries/main/pkg/*
-           build/compose/binaries/main/appimage/*
+#           build/compose/binaries/main/pkg/*
+#           build/compose/binaries/main/appimage/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
