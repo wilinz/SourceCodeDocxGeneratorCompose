@@ -3,14 +3,12 @@ package cocoas
 import org.apache.poi.wp.usermodel.HeaderFooterType
 import org.apache.poi.xwpf.usermodel.*
 import org.apache.xmlbeans.impl.xb.xmlschema.SpaceAttribute
-import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTFldChar
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTSettings
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.STFldCharType
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.STTabJc
 import java.io.*
 import java.lang.reflect.Field
 import java.math.BigInteger
-import java.util.*
 import java.util.function.Consumer
 import kotlin.system.exitProcess
 
@@ -21,86 +19,93 @@ import kotlin.system.exitProcess
  */
 class CodeDocxGenerator {
 
-//    public static void main(String[] args) {
+    //    public static void main(String[] args) {
 //        CodeDocxGenerator cdg = new CodeDocxGenerator();
 //        cdg.start(args,null);
 //    }
-    companion object {
-        private var PROJECT_PATH: String? = "" // 项目路径
-        private var DOC_SAVE_PATH = "" // 生成的源代码Word文档的保存路径
-        private var HEADER = "" // 软件名称+版本号
-        private var FILE_TYPES: MutableList<String>? = null // 需要查找的文件类型
-        private var totalLines = 0 // 代码总行数
-        private val PAGE_LINES = 53 // 文档每页行数
-        private val MAX_LINES = PAGE_LINES * 60 // 限制代码的最大行数
-        private val PAGE_MARGIN_VERTICAL = 1080L // 页面上下边距
-        private val PAGE_MARGIN_HORIZONTAL = 720L // 页面左右边距
-        private var IS_HALF = false // 文档是否分为前后各30页
-        private var IGNORE_DIRS: List<String>? = null // 需要扫描时忽略的文件夹
-    }
+    private var projectPath: String? = "" // 项目路径
+    private var docSavePath = "" // 生成的源代码Word文档的保存路径
+    private var header = "" // 软件名称+版本号
+    private var fileTypes: MutableList<String>? = null // 需要查找的文件类型
+    private var totalLines = 0 // 代码总行数
+    private val pageLines = 53 // 文档每页行数
+    private val maxLines = pageLines * 60 // 限制代码的最大行数
+    private val pageMarginVertical = 1080L // 页面上下边距
+    private val pageMarginHorizontal = 720L // 页面左右边距
+    private var isHalf = false // 文档是否分为前后各30页
+    private var ignoreDirs: List<String>? = null // 需要扫描时忽略的文件夹
 
     /**
      * 开始
      * @param args
      */
-    fun start(args: Array<String>, ignoreDirs: List<String>) {
+    fun start(
+        args: Array<String>,
+        ignoreDirs: List<String>,
+        onHint: ((msg: String) -> Unit)? = null,
+        finishCallback: ((savePath: String, pages: Int, lineNums: Int) -> Unit)? = null
+    ) {
         LogUtils.println("开始")
         // 四个参数处理：项目源代码目录、软件名称、版本号、源码文件类型
         if (args.size < 5) {
             LogUtils.println("参数错误，请输入参数：源代码项目目录、软件名称、版本号、是否分为前后各30页（true/false）、源代码文件类型（以.开始，支持多个，以空格区分）。参数间以空格区分。")
             exitProcess(0)
         }
-        PROJECT_PATH = args[0]
-        HEADER = args[1] + args[2]
-        IS_HALF = args[3].toBoolean()
-        FILE_TYPES = ArrayList()
+        projectPath = args[0]
+        header = args[1] + args[2]
+        isHalf = args[3].toBoolean()
+        fileTypes = ArrayList()
         // 遍历获取选择的源码文件类型
         for (i in 4 until args.size) {
             if (args[i].isNotEmpty()) {
-                FILE_TYPES!!.add(args[i])
+                fileTypes!!.add(args[i])
             }
         }
-        IGNORE_DIRS = ignoreDirs
-        DOC_SAVE_PATH = "$PROJECT_PATH${File.separator}SourceCode.docx"
+        this.ignoreDirs = ignoreDirs
+        docSavePath = "$projectPath${File.separator}SourceCode.docx"
         LogUtils.println("获取参数成功")
-        LogUtils.println("源代码项目目录：$PROJECT_PATH")
+        LogUtils.println("源代码项目目录：$projectPath")
         LogUtils.println("软件名称：" + args[1])
         LogUtils.println("版本号：" + args[2])
         LogUtils.print("源代码文件类型：")
-        FILE_TYPES!!.forEach { msg: String -> LogUtils.print(msg) }
+        fileTypes!!.forEach { msg: String -> LogUtils.print(msg) }
         LogUtils.println("")
-        LogUtils.println("写入方式：" + (if (IS_HALF) "前后各30页" else "顺序60页"))
+        LogUtils.println("写入方式：" + (if (isHalf) "前后各30页" else "顺序60页"))
         LogUtils.print("扫描忽略目录：")
-        IGNORE_DIRS!!.forEach { msg -> LogUtils.print(msg) }
+        this.ignoreDirs!!.forEach { msg -> LogUtils.print(msg) }
         LogUtils.println("")
-        generateSourceCodeDocx(PROJECT_PATH!!)
+        generateSourceCodeDocx(projectPath!!, onHint, finishCallback)
     }
 
     /**
      * 生成源代码Word文档
      * @param projectPath 源代码目录
      */
-    private fun generateSourceCodeDocx(projectPath: String) {
+    private fun generateSourceCodeDocx(
+        projectPath: String,
+        onHint: ((msg: String) -> Unit)? = null,
+        finishCallback: ((savePath: String, pages: Int, lineNums: Int) -> Unit)? = null,
+    ) {
         //扫描项目中符合要求的文件
         LogUtils.println("开始扫描文件")
-        val files = FileUtils.scanFiles(projectPath, FILE_TYPES!!, IGNORE_DIRS!!).toMutableList()
+        val files = FileUtils.scanFiles(projectPath, fileTypes!!, ignoreDirs!!).toMutableList()
         LogUtils.println("扫描文件完成")
         LogUtils.println("文件总数：" + files.size)
         if (files.size <= 0) {
-            MsgHintUtil.showHint("未扫描到符合要求的文件")
+            onHint?.invoke("未扫描到符合要求的文件")
             return
         }
         // 创建一个Word：存放源代码
         val doc = XWPFDocument()
         // 设置Word的页边距：保证每页不少于50行代码，且尽量保证每行代码不换行
-        setPageMargin(doc, PAGE_MARGIN_VERTICAL, PAGE_MARGIN_HORIZONTAL)
+        setPageMargin(doc, pageMarginVertical, pageMarginHorizontal)
         // 迭代代码文件将源代码写入Word中
         LogUtils.println("开始写入Word文档")
-        if (IS_HALF) { // 按前后各30页写入源码文档中
+        if (isHalf) { // 按前后各30页写入源码文档中
             // 先读取前30页
             files.forEach(
                 Consumer { f: String ->
-                    if (totalLines < MAX_LINES / 2) { // 行数达到要求则不再写入
+                    if (totalLines < maxLines / 2) { // 行数达到要求则不再写入
                         writeFileToDocx(f, doc)
                     }
                 }
@@ -109,7 +114,7 @@ class CodeDocxGenerator {
             files.reversed()
             files.forEach(
                 Consumer { f: String ->
-                    if (totalLines < MAX_LINES) { // 行数达到要求则不再写入
+                    if (totalLines < maxLines) { // 行数达到要求则不再写入
                         writeFileToDocx(f, doc)
                     }
                 }
@@ -117,19 +122,19 @@ class CodeDocxGenerator {
         } else { // 从开始写入60页
             files.forEach(
                 Consumer { f: String ->
-                    if (totalLines < MAX_LINES) { // 行数达到要求则不再写入
+                    if (totalLines < maxLines) { // 行数达到要求则不再写入
                         writeFileToDocx(f, doc)
                     }
                 }
             )
         }
         LogUtils.println("写入Word文档完成")
-        LogUtils.println("Word文档输出目录：$DOC_SAVE_PATH")
+        LogUtils.println("Word文档输出目录：$docSavePath")
         // 保存Word文档
-        saveDocx(doc, DOC_SAVE_PATH)
+        saveDocx(doc, docSavePath)
         LogUtils.println("统计代码行数：$totalLines")
         // Word添加页眉：显示软件名称、版本号和页码
-        createPageHeader(HEADER)
+        createPageHeader(header, finishCallback)
         LogUtils.println("结束")
     }
 
@@ -160,10 +165,13 @@ class CodeDocxGenerator {
      * Word添加页眉
      * @param header 页眉内容
      */
-    private fun createPageHeader(header: String) {
+    private fun createPageHeader(
+        header: String,
+        finishCallback: ((savePath: String, pages: Int, lineNums: Int) -> Unit)? = null
+    ) {
         try {
             // 以已存在的Word文件创建文档对象
-            val doc: XWPFDocument = XWPFDocument(FileInputStream(File(DOC_SAVE_PATH)))
+            val doc: XWPFDocument = XWPFDocument(FileInputStream(File(docSavePath)))
 
             //生成偶数页的页眉
             createPageHeader(doc, HeaderFooterType.EVEN, header)
@@ -184,11 +192,11 @@ class CodeDocxGenerator {
             // 获取文档页数
 //            int pageNums = doc.getProperties().getExtendedProperties()
 //                    .getUnderlyingProperties().getPages();// 计算结果有问题
-            val pageNums = totalLines / PAGE_LINES + 1 // 根据统计的代码行数计算总页数
+            val pageNums = totalLines / pageLines + 1 // 根据统计的代码行数计算总页数
             // 保存文档
-            doc.write(FileOutputStream(DOC_SAVE_PATH))
+            doc.write(FileOutputStream(docSavePath))
             doc.close()
-            MsgHintUtil.showFinishHint(DOC_SAVE_PATH, pageNums, totalLines)
+            finishCallback?.invoke(docSavePath, pageNums, totalLines)
         } catch (e: Exception) {
             LogUtils.error("Word添加页眉出错：" + e.message)
         }
@@ -276,14 +284,14 @@ class CodeDocxGenerator {
      */
     fun saveDocx(doc: XWPFDocument, savePath: String) {
         // 创建文件输出流：保存Word到本地
-        try {
-            val fout = FileOutputStream(savePath)
-            doc.write(fout)
-            fout.close()
-        } catch (e: FileNotFoundException) {
-            LogUtils.error("保存Word文档到本地时发生错误：" + e.message)
-        } catch (e: IOException) {
-            LogUtils.error("保存Word文档到本地时发生错误：" + e.message)
+        File(savePath).outputStream().use {
+            try {
+                doc.write(it)
+            } catch (e: FileNotFoundException) {
+                LogUtils.error("保存Word文档到本地时发生错误：" + e.message)
+            } catch (e: IOException) {
+                LogUtils.error("保存Word文档到本地时发生错误：" + e.message)
+            }
         }
     }
 }

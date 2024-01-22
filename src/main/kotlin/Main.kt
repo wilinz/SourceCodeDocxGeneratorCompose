@@ -1,26 +1,36 @@
+@file:OptIn(ExperimentalComposeUiApi::class)
+
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Window
-import androidx.compose.ui.window.application
+import androidx.compose.ui.window.*
 import cocoas.CodeDocxGenerator
-import cocoas.MsgHintUtil.showHint
 import com.darkrockstudios.libraries.mpfilepicker.DirectoryPicker
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import wilinz.ui.theme.AppTheme
+import java.awt.Cursor
+import java.awt.Desktop
 import java.io.File
+
 
 @Composable
 @Preview
@@ -47,12 +57,22 @@ fun App() {
                     // Directory chooser
 
                     var showDirPicker by remember { mutableStateOf(false) }
-                    DirectoryPicker(showDirPicker) { path ->
+                    val initialDirectory by remember(dirPath) {
+                        mutableStateOf(
+                            dirPath.ifBlank {
+                                System.getProperty("user.home") ?: ""
+                            }
+                        )
+                    }
+                    DirectoryPicker(
+                        showDirPicker,
+                        initialDirectory = initialDirectory,
+                        title = "选择文件夹"
+                    ) { path ->
                         showDirPicker = false
                         path?.let {
                             dirPath = path
                         }
-                        // do something with path
                     }
 
                     OutlinedTextField(
@@ -62,9 +82,13 @@ fun App() {
                         shape = RoundedCornerShape(12.dp),
                         maxLines = 5,
                         trailingIcon = {
-                            IconButton(onClick = {
-                                showDirPicker = true
-                            }) {
+                            IconButton(
+                                onClick = {
+                                    showDirPicker = true
+                                },
+                                modifier = Modifier
+                                    .pointerHoverIcon(PointerIcon(Cursor(Cursor.HAND_CURSOR)))
+                            ) {
                                 Icon(painterResource("folder_open_black_24dp.svg"), contentDescription = null)
                             }
                         },
@@ -110,7 +134,7 @@ fun App() {
                         placeholder = { Text(".java .kt") },
                         modifier = Modifier.fillMaxWidth()
                     )
-                    Text("--------非必填部分--------")
+                    Text("--------非必填部分--------", modifier = Modifier.padding(vertical = 8.dp))
                     // Project name input
                     OutlinedTextField(
                         value = name,
@@ -140,24 +164,108 @@ fun App() {
                         modifier = Modifier.fillMaxWidth()
                     )
 
+                    var hint by remember {
+                        mutableStateOf("")
+                    }
+
+                    var isShowFinishDialog by remember {
+                        mutableStateOf(false)
+                    }
+
+                    var finishDialogContentText by remember {
+                        mutableStateOf("")
+                    }
+
+                    var finishFile by remember {
+                        mutableStateOf<File?>(null)
+                    }
+
+                    AnimatedVisibility(
+                        visible = isShowFinishDialog,
+                        enter = fadeIn(initialAlpha = 0.3f), // 进入时的动画效果
+                        exit = fadeOut(targetAlpha = 0.3f) // 退出时的动画效果
+                    ) {
+                        AlertDialog(
+                            properties = DialogProperties(dismissOnClickOutside = false),
+                            confirmButton = {
+                                TextButton(onClick = {
+                                    isShowFinishDialog = false
+                                    if (finishFile == null || !Desktop.isDesktopSupported()) {
+                                        println("Desktop is not supported on this platform.")
+                                        return@TextButton
+                                    }
+                                    val desktop = Desktop.getDesktop()
+                                    if (desktop.isSupported(Desktop.Action.OPEN)) {
+                                        // 打开资源管理器并显示用户的主目录
+                                        desktop.open(finishFile!!.parentFile)
+                                    }
+                                }, modifier = Modifier.pointerHoverIcon(PointerIcon(Cursor(Cursor.HAND_CURSOR)))) {
+                                    Text("打开")
+                                }
+                            },
+                            dismissButton = {
+                                TextButton(onClick = {
+                                    isShowFinishDialog = false
+                                }, modifier = Modifier.pointerHoverIcon(PointerIcon(Cursor(Cursor.HAND_CURSOR)))) {
+                                    Text("关闭")
+                                }
+                            },
+                            onDismissRequest = {
+                                isShowFinishDialog = false
+                            },
+                            title = {
+                                Text("消息")
+                            },
+                            text = {
+                                SelectionContainer {
+                                    Text(finishDialogContentText)
+                                }
+                            }
+                        )
+                    }
+
+
                     // Start button
                     ElevatedButton(
                         onClick = {
                             GlobalScope.launch(Dispatchers.IO) {
-                                start(
-                                    dir = dirPath,
-                                    isHalf = isHalf,
-                                    fileTypes = fileTypes,
-                                    name = name,
-                                    version = version,
-                                    ignoreDirs = ignoreDirs,
-                                )
+                                kotlin.runCatching {
+                                    start(
+                                        dir = dirPath,
+                                        isHalf = isHalf,
+                                        fileTypes = fileTypes,
+                                        name = name,
+                                        version = version,
+                                        ignoreDirs = ignoreDirs,
+                                        onHint = {
+                                            hint = it
+                                        },
+                                        finishCallback = { savePath: String, pages: Int, lineNums: Int ->
+                                            finishFile = File(savePath)
+                                            finishDialogContentText = """
+             源代码文档生成成功！
+             文档位置：$savePath
+             文档页数：${pages}页
+             文档行数：${lineNums}行
+             """.trimIndent()
+                                            isShowFinishDialog = true
+                                        }
+                                    )
+                                }
                             }
                         },
-                        modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
+                        modifier = Modifier.fillMaxWidth().padding(top = 24.dp)
+                            .pointerHoverIcon(PointerIcon(Cursor(Cursor.HAND_CURSOR))),
                     ) {
                         Text("开始")
                     }
+
+                    Spacer(Modifier.height(12.dp))
+
+                    SelectionContainer {
+                        Text(hint)
+                    }
+
                 }
             }
         }
@@ -169,7 +277,8 @@ fun App() {
 fun RadioButtonWithLabel(
     isSelected: Boolean,
     onSelected: () -> Unit,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
+        .pointerHoverIcon(PointerIcon(Cursor(Cursor.HAND_CURSOR))),
     label: @Composable () -> Unit,
 ) {
     Row(
@@ -203,17 +312,19 @@ private fun start(
     fileTypes: String,
     name: String,
     version: String,
-    ignoreDirs: String
+    ignoreDirs: String,
+    onHint: ((msg: String) -> Unit)? = null,
+    finishCallback: ((savePath: String, pages: Int, lineNums: Int) -> Unit)? = null
 ) {
     if (dir.isBlank()) { // 项目目录空判断
-        showHint("请选择或输入项目源码目录！")
+        onHint?.invoke("请选择或输入项目源码目录！")
         return
     } else if (!(File(dir).isDirectory)) {
-        showHint("请选择或输入正确的项目源码目录！")
+        onHint?.invoke("请选择或输入正确的项目源码目录！")
         return
     }
     if (fileTypes.isBlank()) {
-        showHint("请输入需要写入的源码文件类型！（提示：源码文件类型应以.开头，如.java，多个文件类型间以空格区分）")
+        onHint?.invoke("请输入需要写入的源码文件类型！（提示：源码文件类型应以.开头，如.java，多个文件类型间以空格区分）")
         return
     }
 
@@ -230,7 +341,7 @@ private fun start(
         if (fileTypeArray[i] == null || fileTypeArray[i]!!.trim { it <= ' ' }.isEmpty() || !fileTypeArray[i]!!
                 .trim { it <= ' ' }.startsWith(".")
         ) {
-            showHint("请输入的源码文件类型有误，请重新输入！\n（提示：源码文件类型应以.开头，如.java，多个文件类型间以空格区分）")
+            onHint?.invoke("请输入的源码文件类型有误，请重新输入！\n（提示：源码文件类型应以.开头，如.java，多个文件类型间以空格区分）")
             return
         } else {
             params[3 + 1 + i] = fileTypeArray[i]!!.trim { it <= ' ' }
@@ -247,11 +358,17 @@ private fun start(
         }
     }
     val cdg = CodeDocxGenerator()
-    cdg.start(params.filterNotNull().toTypedArray(), ignoreDirsList)
+    cdg.start(params.filterNotNull().toTypedArray(), ignoreDirsList, onHint, finishCallback)
 }
 
 fun main() = application {
+    val windowState = rememberWindowState(
+        width = 800.dp,  // 设置窗口的初始宽度
+        height = 600.dp, // 设置窗口的初始高度
+        position = WindowPosition(Alignment.Center) // 设置窗口的初始位置
+    )
     Window(
+        state = windowState,
         onCloseRequest = ::exitApplication,
         title = "软著源代码文档自动生成工具",
         icon = painterResource("logo.png")

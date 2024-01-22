@@ -62,7 +62,7 @@ object FileUtils {
         }
         val lines: MutableList<String> = ArrayList()
         try {
-            val reader = BufferedReader(FileReader(File(filePath)))
+            val reader = BufferedReader(File(filePath).reader())
             var line = reader.readLine()
             while (null != line) {
                 if (filterLine(line)) { // 过滤不符合要求的代码行
