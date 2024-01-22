@@ -23,7 +23,9 @@ dependencies {
     // With compose.desktop.common you will also lose @Preview functionality
     implementation(compose.desktop.currentOs)
     implementation(compose.material3)
-    implementation("org.apache.poi:poi-ooxml:3.17")
+    implementation("org.apache.poi:poi-ooxml:3.17"){
+        exclude(group = "org.apache.xmlbeans", module = "xmlbeans")
+    }
     implementation("org.apache.poi:ooxml-schemas:1.3")
     implementation("com.darkrockstudios:mpfilepicker:3.1.0")
     // https://mvnrepository.com/artifact/org.jetbrains.compose.material/material-icons-extended-desktop
