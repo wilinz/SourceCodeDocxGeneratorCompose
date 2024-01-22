@@ -6,7 +6,7 @@ SourceCodeDocxGeneratorCompose 基于 [SourceCodeDocxGenerator](https://github.c
 SourceCodeDocxGenerator基于Apache POI实现，详情请参考代码。
 
 ## 更新
-SourceCodeDocxGenerator目前可在 [Release 中下载](https://github.com/wilinz/SourceCodeDocxGeneratorCompose/releases) 直接运行。
+SourceCodeDocxGeneratorCompose 目前可在 [Release 中下载](https://github.com/wilinz/SourceCodeDocxGeneratorCompose/releases) 直接运行。
 * **图形界面使用截图**   
   ![图形界面未输入](screenshot/img.png)
 * **参数说明**   
