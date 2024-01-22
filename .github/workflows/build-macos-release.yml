@@ -22,7 +22,7 @@ jobs:
       - name: Build Compose Desktop
         run: |
           chmod 0777 ./gradlew
-          ./gradlew packageDistributionForCurrentOS
+          ./gradlew packageDmg
 
       - name: Upload to Release
         uses: softprops/action-gh-release@v1
