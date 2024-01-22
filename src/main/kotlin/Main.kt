@@ -16,6 +16,9 @@ import androidx.compose.ui.window.application
 import cocoas.CodeDocxGenerator
 import cocoas.MsgHintUtil.showHint
 import com.darkrockstudios.libraries.mpfilepicker.DirectoryPicker
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import wilinz.ui.theme.AppTheme
 import java.io.File
 
@@ -140,14 +143,16 @@ fun App() {
                     // Start button
                     ElevatedButton(
                         onClick = {
-                            start(
-                                dir = dirPath,
-                                isHalf = isHalf,
-                                fileTypes = fileTypes,
-                                name = name,
-                                version = version,
-                                ignoreDirs = ignoreDirs,
-                            )
+                            GlobalScope.launch(Dispatchers.IO) {
+                                start(
+                                    dir = dirPath,
+                                    isHalf = isHalf,
+                                    fileTypes = fileTypes,
+                                    name = name,
+                                    version = version,
+                                    ignoreDirs = ignoreDirs,
+                                )
+                            }
                         },
                         modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
                     ) {
