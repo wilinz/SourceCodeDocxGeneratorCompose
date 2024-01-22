@@ -25,7 +25,9 @@ jobs:
           ./gradlew packageDmg
 
       - name: Rename DMG file
-        run: mv build/compose/binaries/main/dmg/*.dmg build/compose/binaries/main/dmg/*-macos.dmg
+        run: |
+          cd build/compose/binaries/main/dmg
+          for file in *.dmg; do mv "$file" "$(basename "$file" .dmg)-macos.dmg"; done
 
       - name: Upload to Release
         uses: softprops/action-gh-release@v1
