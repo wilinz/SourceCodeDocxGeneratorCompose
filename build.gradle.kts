@@ -39,6 +39,7 @@ compose.desktop {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb, TargetFormat.Rpm, TargetFormat.Pkg)
             packageName = "SourceCodeDocxGeneratorCompose"
             packageVersion = "1.0.0"
+            modules("jdk.unsupported")
             macOS {
                 iconFile.set(project.file("logo/logo.icns"))
             }
